@@ -1,8 +1,8 @@
 import csv
 import heapq
-import time
+import timeit
 import math
-from math import atan2, sqrt, radians, sin, cos
+import sys
 
 # Read the coordinates.csv file and create a dictionary of cities with their coordinates
 city_coordinates = {}
@@ -30,13 +30,28 @@ def haversine(coord1, coord2):
     lat2, lon2 = coord2
     radius = 6371  # Earth's radius in kilometers
 
-    dlat = radians(lat2 - lat1)
-    dlon = radians(lon2 - lon1)
+    dlat = math.radians(lat2 - lat1)
+    dlon = math.radians(lon2 - lon1)
 
-    a = sin(dlat/2)**2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon/2)**2
-    c = 2 * atan2(sqrt(a), sqrt(1-a))
+    a = math.sin(dlat/2)**2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon/2)**2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
 
     return radius * c
+
+# Check for valid cities
+def check_valid_city(city):
+    if city in city_coordinates:
+        return True
+    else:
+        print(f"{city} is not a valid city. Please enter a valid city name.")
+        return False
+
+# Calculate memory used by data structures
+def calculate_memory():
+    memory_used = 0
+    memory_used += sys.getsizeof(city_coordinates)
+    memory_used += sys.getsizeof(adjacency_graph)
+    return memory_used
 
 # Brute-force search (Undirected)
 def brute_force_search(start, end):
@@ -147,49 +162,45 @@ while True:
     start_city = input("Enter the starting town: ")
     end_city = input("Enter the ending town: ")
 
-    if start_city not in city_coordinates or end_city not in city_coordinates:
-        print("Invalid cities. Please enter valid city names.")
+    if not (check_valid_city(start_city) and check_valid_city(end_city)):
         continue
 
-    print("Select a search method:")
-    print("1. Brute-force (Undirected)")
-    print("2. Breadth-first search")
-    print("3. Depth-first search")
-    print("4. ID-DFS search")
-    print("5. Best-first search")
-    print("6. A* search")
+    while True:  # Loop for method selection
+        print("Select a search method:")
+        print("1. Brute-force (Undirected)")
+        print("2. Breadth-first search")
+        print("3. Depth-first search")
+        print("4. ID-DFS search")
+        print("5. Best-first search")
+        print("6. A* search")
 
-    method = int(input("Enter the method number (1-6): "))
+        method = int(input("Enter the method number (1-6): "))
 
-    start_time = time.time()
+        if method == 1:
+            time_taken = timeit.timeit(lambda: brute_force_search(start_city, end_city), number=1)
+        elif method == 2:
+            time_taken = timeit.timeit(lambda: bfs(start_city, end_city), number=1)
+        elif method == 3:
+            time_taken = timeit.timeit(lambda: dfs(start_city, end_city), number=1)
+        elif method == 4:
+            time_taken = timeit.timeit(lambda: id_dfs(start_city, end_city), number=1)
+        elif method == 5:
+            time_taken = timeit.timeit(lambda: best_first_search(start_city, end_city), number=1)
+        elif method == 6:
+            time_taken = timeit.timeit(lambda: astar_search(start_city, end_city), number=1)
+        else:
+            print("Invalid method selection. Please enter a valid method number (1-6).")
+            continue
 
-    if method == 1:
-        path = brute_force_search(start_city, end_city)
-    elif method == 2:
-        path = bfs(start_city, end_city)
-    elif method == 3:
-        path = dfs(start_city, end_city)
-    elif method == 4:
-        path = id_dfs(start_city, end_city)
-    elif method == 5:
-        path = best_first_search(start_city, end_city)
-    elif method == 6:
-        path = astar_search(start_city, end_city)
-    else:
-        print("Invalid method selection. Please enter a valid method number (1-6).")
-        continue
+        if time_taken is not None:
+            print(f"Time taken: {time_taken:.6f} seconds")
+        else:
+            print("No route found.")
 
-    end_time = time.time()
-    if path:
-        print("Route found:", " -> ".join(path))
-        total_distance = sum(haversine(city_coordinates[path[i]], city_coordinates[path[i+1]]) for i in range(len(path)-1))
-        print("Total distance:", round(total_distance, 2), "km")
-        print("Time taken:", round(end_time - start_time, 4), "seconds")
-    else:
-        print("No route found.")
+        choice = input("Do you want to search again with a different method? (yes/no): ")
+        if choice.lower() != 'yes':
+            break  # Exit the method selection loop if the user does not want to search again
 
-    choice = input("Do you want to search again? (yes/no): ")
+    choice = input("Do you want to perform another search? (yes/no): ")
     if choice.lower() != 'yes':
-        break
-
-
+        break  # Exit the main loop if the user does not want to perform another search
