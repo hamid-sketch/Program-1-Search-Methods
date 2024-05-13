@@ -53,22 +53,6 @@ def calculate_memory():
     memory_used += sys.getsizeof(adjacency_graph)
     return memory_used
 
-# Brute-force search (Undirected)
-def brute_force_search(start, end):
-    visited = set()
-    stack = [(start, [])]
-
-    while stack:
-        current, path = stack.pop()
-        if current == end:
-            return path + [current]
-        if current not in visited:
-            visited.add(current)
-            for neighbor in adjacency_graph.get(current, []):
-                if neighbor not in visited:
-                    stack.append((neighbor, path + [current]))
-    return None
-
 # Breadth-first search
 def bfs(start, end):
     visited = set()
@@ -167,33 +151,36 @@ while True:
 
     while True:  # Loop for method selection
         print("Select a search method:")
-        print("1. Brute-force (Undirected)")
-        print("2. Breadth-first search")
-        print("3. Depth-first search")
-        print("4. ID-DFS search")
-        print("5. Best-first search")
-        print("6. A* search")
+        print("1. Breadth-first search")
+        print("2. Depth-first search")
+        print("3. ID-DFS search")
+        print("4. Best-first search")
+        print("5. A* search")
 
-        method = int(input("Enter the method number (1-6): "))
+        method = int(input("Enter the method number (1-5): "))
 
         if method == 1:
-            time_taken = timeit.timeit(lambda: brute_force_search(start_city, end_city), number=1)
-        elif method == 2:
+            path = bfs(start_city, end_city)
             time_taken = timeit.timeit(lambda: bfs(start_city, end_city), number=1)
-        elif method == 3:
+        elif method == 2:
+            path = dfs(start_city, end_city)
             time_taken = timeit.timeit(lambda: dfs(start_city, end_city), number=1)
-        elif method == 4:
+        elif method == 3:
+            path = id_dfs(start_city, end_city)
             time_taken = timeit.timeit(lambda: id_dfs(start_city, end_city), number=1)
-        elif method == 5:
+        elif method == 4:
+            path = best_first_search(start_city, end_city)
             time_taken = timeit.timeit(lambda: best_first_search(start_city, end_city), number=1)
-        elif method == 6:
+        elif method == 5:
+            path = astar_search(start_city, end_city)
             time_taken = timeit.timeit(lambda: astar_search(start_city, end_city), number=1)
         else:
-            print("Invalid method selection. Please enter a valid method number (1-6).")
+            print("Invalid method selection. Please enter a valid method number (1-5).")
             continue
-
-        if time_taken is not None:
-            print(f"Time taken: {time_taken:.6f} seconds")
+        
+        if path is not None:
+            print(f"Route found: {' -> '.join(path)}")
+            print(f"Time taken: {time_taken:.5f} seconds")
         else:
             print("No route found.")
 
